@@ -4,3 +4,4 @@ out/
 dist/
 datarangers_sdk_python.egg-info/
 datarangers/**/*.pyc
+datarangers/**/*.DS_Store
