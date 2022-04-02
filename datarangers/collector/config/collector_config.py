@@ -122,7 +122,10 @@ class DataRangersSdkConfig:
             self.set_http_timeout(config.get("http_timeout", 3))
             self.set_domain(config.get("domain", "http://127.0.0.1"))
             if "save" in config and config.get("save"):
-                self.enable_save()
+                if config.get("save"): 
+                    self.enable_save()
+                else
+                    self.enable_send()
             self.set_log_max_bytes(config.get("log_max_bytes", 100 * 1024))
             self.set_log_file_name(config.get("log_file_name", "datarangers"))
             self.set_log_file_path(config.get("log_file_path", "logs/datarangers/"))
