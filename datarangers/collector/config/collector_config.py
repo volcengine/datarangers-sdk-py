@@ -121,7 +121,7 @@ class DataRangersSdkConfig:
             }))
             self.set_http_timeout(config.get("http_timeout", 3))
             self.set_domain(config.get("domain", "http://127.0.0.1"))
-            if "save" in config and config.get("save"):
+            if "save" in config:
                 if config.get("save"):
                     self.enable_save()
                 else:
