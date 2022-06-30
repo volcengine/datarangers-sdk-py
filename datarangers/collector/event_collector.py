@@ -19,55 +19,68 @@ class EventCollector:
 
     @staticmethod
     def send_app_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
-                       device_type=None, device_uniq_id=None):
+                       device_type=None, device_uniq_id=None, ab_sdk_version=None):
         r""" send app event
 
         :param user_unique_id: uuid
         :param app_id: app id
         :param custom
-        :param event_name,event_params
+        :param event_name,event_params,ab_sdk_version
             if isinstance(event_name, str):
                 isinstance(event_params,dict) -> event_params should be a dict
             else if isinstance(event_name, list):
                 isinstance(event_params,list) and len(event_params) == len(event_name)
-                which mean event_name[n]'s params is event_params[n]
+                which mean event_name[n]'s params is event_params[n],
+                ab_sdk_version[n]'s params is ab_sdk_version[n]
         :param device_type: ["android","ios"]
         :param device_uniq_id: device identification
+        :param ab_sdk_version: ab_sdk_version
         """
         EventCollector.__collector("app", user_unique_id, app_id, custom, event_name, event_params, device_type,
-                                   device_uniq_id)
+                                   device_uniq_id, ab_sdk_version)
 
     @staticmethod
-    def send_mp_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params):
+    def send_mp_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
+                      device_uniq_id=None, ab_sdk_version=None):
         r""" send mp event
 
         :param user_unique_id: uuid
         :param app_id: app id
         :param custom
-        :param event_name,event_params
+        :param event_name,event_params,ab_sdk_version
             if isinstance(event_name, str):
                 isinstance(event_params,dict) -> event_params should be a dict
             else if isinstance(event_name, list):
                 isinstance(event_params,list) and len(event_params) == len(event_name)
-                which mean event_name[n]'s params is event_params[n]
+                which mean event_name[n]'s params is event_params[n],
+                ab_sdk_version[n]'s params is ab_sdk_version[n]
+        :param device_uniq_id: device identification
+        :param ab_sdk_version: ab_sdk_version
         """
-        EventCollector.__collector("mp", user_unique_id, app_id, custom, event_name, event_params)
+        EventCollector.__collector("mp", user_unique_id, app_id, custom, event_name, event_params,
+                                   device_uniq_id=device_uniq_id, ab_sdk_version=ab_sdk_version)
 
     @staticmethod
-    def send_web_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params):
+    def send_web_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
+                      device_uniq_id=None, ab_sdk_version=None):
         r""" send web event
 
         :param user_unique_id: uuid
         :param app_id: app id
         :param custom
-        :param event_name,event_params
+        :param event_name,event_params, ab_sdk_version
             if isinstance(event_name, str):
                 isinstance(event_params,dict) -> event_params should be a dict
             else if isinstance(event_name, list):
                 isinstance(event_params,list) and len(event_params) == len(event_name)
-                which mean event_name[n]'s params is event_params[n]
+                which mean event_name[n]'s params is event_params[n],
+                ab_sdk_version[n]'s params is ab_sdk_version[n]
+
+        :param device_uniq_id: device identification
+        :param ab_sdk_version: ab_sdk_version
         """
-        EventCollector.__collector("web", user_unique_id, app_id, custom, event_name, event_params)
+        EventCollector.__collector("web", user_unique_id, app_id, custom, event_name, event_params,
+                                   device_uniq_id=device_uniq_id, ab_sdk_version=ab_sdk_version)
 
     @staticmethod
     def profile_set(user_unique_id: str, app_id: int, event_params):
@@ -156,7 +169,7 @@ class EventCollector:
 
     @staticmethod
     def __collector(app_type: str, user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
-                    device_type=None, device_uniq_id=None):
+                    device_type=None, device_uniq_id=None, ab_sdk_version=None):
         if not EventCollector.__init_status:
             raise RuntimeError("please init sdk config before use it")
         message = Message()
@@ -173,13 +186,15 @@ class EventCollector:
             elif device_type == "ANDROID":
                 message.header.set_os("android")
                 message.header.set_openudid(device_uniq_id)
+        elif device_uniq_id:
+            message.set_device_id(device_uniq_id)
         if not event_params:
             if isinstance(event_name, str):
                 event_params = {}
             elif isinstance(event_name, list):
                 event_params = {[] for i in range(len(list))}
         if isinstance(event_name, str) and isinstance(event_params, dict):
-            message.set_event(event_name=event_name, event_params=event_params)
+            message.set_event(event_name=event_name, event_params=event_params, ab_sdk_version=ab_sdk_version)
         elif isinstance(event_name, list) and isinstance(event_params, list):
             for i in range(min(len(event_name), len(event_params))):
                 name = event_name[i]
@@ -187,7 +202,11 @@ class EventCollector:
                     event_name_current = name.value
                 else:
                     event_name_current = str(event_name[i]).lower()
-                message.set_event(event_name_current, event_params[i])
+                ab_sdk_version_current = None
+                if isinstance(ab_sdk_version, list):
+                    ab_sdk_version_current = ab_sdk_version[i]
+
+                message.set_event(event_name_current, event_params[i], ab_sdk_version_current)
         else:
             logging.error("event_name or event_params are invalid! event_name:{};event_params:{}".format(event_name,
                                                                                                          event_params))
