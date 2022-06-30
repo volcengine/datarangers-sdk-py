@@ -45,12 +45,14 @@ class Message:
         self.header.set_aid(app_id)
         return self
 
-    def set_event(self, event_name: str, event_params: dict):
+    def set_event(self, event_name: str, event_params: dict, ab_sdk_version=None):
         if "event_v3" not in self.message:
             self.message["event_v3"] = []
         event = Event()
         event.set_event(event_name)
         event.set_params(event_params)
+        if ab_sdk_version:
+            event.set_ab_sdk_version(ab_sdk_version)
         self.message["event_v3"].append(event.get_events())
         return self
 

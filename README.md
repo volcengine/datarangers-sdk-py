@@ -44,55 +44,66 @@ datarangers-sdk-php是 [DataRangers](https://datarangers.com.cn/) 的用户行�
     
 3. 上报事件接口
     ```python
-   @staticmethod
+    @staticmethod
     def send_app_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
-                       device_type=None, device_uniq_id=None):
+                       device_type=None, device_uniq_id=None, ab_sdk_version=None):
         r""" send app event
-    
+
         :param user_unique_id: uuid
         :param app_id: app id
         :param custom
-        :param event_name,event_params
+        :param event_name,event_params,ab_sdk_version
             if isinstance(event_name, str):
                 isinstance(event_params,dict) -> event_params should be a dict
             else if isinstance(event_name, list):
                 isinstance(event_params,list) and len(event_params) == len(event_name)
-                which mean event_name[n]'s params is event_params[n]
+                which mean event_name[n]'s params is event_params[n],
+                ab_sdk_version[n]'s params is ab_sdk_version[n]
         :param device_type: ["android","ios"]
         :param device_uniq_id: device identification
+        :param ab_sdk_version: ab_sdk_version
         """
      
-     @staticmethod
-    def send_mp_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params):
+    @staticmethod
+    def send_mp_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
+                      device_uniq_id=None, ab_sdk_version=None):
         r""" send mp event
-    
+
         :param user_unique_id: uuid
         :param app_id: app id
         :param custom
-        :param event_name,event_params
+        :param event_name,event_params,ab_sdk_version
             if isinstance(event_name, str):
                 isinstance(event_params,dict) -> event_params should be a dict
             else if isinstance(event_name, list):
                 isinstance(event_params,list) and len(event_params) == len(event_name)
-                which mean event_name[n]'s params is event_params[n]
+                which mean event_name[n]'s params is event_params[n],
+                ab_sdk_version[n]'s params is ab_sdk_version[n]
+        :param device_uniq_id: device identification
+        :param ab_sdk_version: ab_sdk_version
         """
      
-     @staticmethod
-    def send_web_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params):
+    @staticmethod
+    def send_web_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
+                      device_uniq_id=None, ab_sdk_version=None):
         r""" send web event
-    
+
         :param user_unique_id: uuid
         :param app_id: app id
         :param custom
-        :param event_name,event_params
+        :param event_name,event_params, ab_sdk_version
             if isinstance(event_name, str):
                 isinstance(event_params,dict) -> event_params should be a dict
             else if isinstance(event_name, list):
                 isinstance(event_params,list) and len(event_params) == len(event_name)
-                which mean event_name[n]'s params is event_params[n]
+                which mean event_name[n]'s params is event_params[n],
+                ab_sdk_version[n]'s params is ab_sdk_version[n]
+
+        :param device_uniq_id: device identification
+        :param ab_sdk_version: ab_sdk_version
         """
      
-     @staticmethod
+    @staticmethod
     def profile_set(user_unique_id: str, app_id: int, event_params):
         r""" send app event
     
