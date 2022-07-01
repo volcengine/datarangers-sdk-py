@@ -46,62 +46,82 @@ datarangers-sdk-php是 [DataRangers](https://datarangers.com.cn/) 的用户行�
     ```python
     @staticmethod
     def send_app_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
-                       device_type=None, device_uniq_id=None, ab_sdk_version=None):
+                       device_type=None, device_uniq_id=None, ab_sdk_version=None, local_time_ms=None):
         r""" send app event
 
         :param user_unique_id: uuid
         :param app_id: app id
         :param custom
-        :param event_name,event_params,ab_sdk_version
+        :param event_name,event_params,ab_sdk_version,local_time_ms
             if isinstance(event_name, str):
                 isinstance(event_params,dict) -> event_params should be a dict
             else if isinstance(event_name, list):
                 isinstance(event_params,list) and len(event_params) == len(event_name)
                 which mean event_name[n]'s params is event_params[n],
-                ab_sdk_version[n]'s params is ab_sdk_version[n]
+                ab_sdk_version[n]'s params is ab_sdk_version[n],
+                local_time_ms[n]'s params is local_time_ms[n]
+             
         :param device_type: ["android","ios"]
         :param device_uniq_id: device identification
         :param ab_sdk_version: ab_sdk_version
+        :param local_time_ms: event time of millisecond
         """
      
     @staticmethod
     def send_mp_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
-                      device_uniq_id=None, ab_sdk_version=None):
+                      device_uniq_id=None, ab_sdk_version=None, local_time_ms=None):
         r""" send mp event
 
         :param user_unique_id: uuid
         :param app_id: app id
         :param custom
-        :param event_name,event_params,ab_sdk_version
+        :param event_name,event_params,ab_sdk_version,local_time_ms
             if isinstance(event_name, str):
                 isinstance(event_params,dict) -> event_params should be a dict
             else if isinstance(event_name, list):
                 isinstance(event_params,list) and len(event_params) == len(event_name)
                 which mean event_name[n]'s params is event_params[n],
-                ab_sdk_version[n]'s params is ab_sdk_version[n]
+                ab_sdk_version[n]'s params is ab_sdk_version[n],
+                local_time_ms[n]'s params is local_time_ms[n]
+             
         :param device_uniq_id: device identification
         :param ab_sdk_version: ab_sdk_version
+        :param local_time_ms: event time of millisecond
         """
      
     @staticmethod
     def send_web_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
-                      device_uniq_id=None, ab_sdk_version=None):
+                      device_uniq_id=None, ab_sdk_version=None, local_time_ms=None):
         r""" send web event
 
         :param user_unique_id: uuid
         :param app_id: app id
         :param custom
-        :param event_name,event_params, ab_sdk_version
+        :param event_name,event_params, ab_sdk_version,local_time_ms
             if isinstance(event_name, str):
                 isinstance(event_params,dict) -> event_params should be a dict
             else if isinstance(event_name, list):
                 isinstance(event_params,list) and len(event_params) == len(event_name)
                 which mean event_name[n]'s params is event_params[n],
-                ab_sdk_version[n]'s params is ab_sdk_version[n]
+                ab_sdk_version[n]'s params is ab_sdk_version[n],
+                local_time_ms[n]'s params is local_time_ms[n]
 
         :param device_uniq_id: device identification
         :param ab_sdk_version: ab_sdk_version
+        :param local_time_ms: event time of millisecond
         """
+   
+    @staticmethod
+    def send_event(app_type: str, user_unique_id: str, app_id: int, header: Header, event: Event, device_uniq_id=None):
+        """
+        :param app_type: app type, only: app,web,mp
+        :param user_unique_id: uuid
+        :param app_id: app_id
+        :param header: header
+        :param event: event
+        :param device_uniq_id: device_id
+        """
+     
      
     @staticmethod
     def profile_set(user_unique_id: str, app_id: int, event_params):

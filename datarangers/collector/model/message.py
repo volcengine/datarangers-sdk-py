@@ -45,7 +45,7 @@ class Message:
         self.header.set_aid(app_id)
         return self
 
-    def set_event(self, event_name: str, event_params: dict, ab_sdk_version=None):
+    def set_event(self, event_name: str, event_params: dict, ab_sdk_version=None, local_time_ms=None):
         if "event_v3" not in self.message:
             self.message["event_v3"] = []
         event = Event()
@@ -53,11 +53,19 @@ class Message:
         event.set_params(event_params)
         if ab_sdk_version:
             event.set_ab_sdk_version(ab_sdk_version)
+        if local_time_ms:
+            event.set_local_time_ms(local_time_ms)
         self.message["event_v3"].append(event.get_events())
         return self
 
     def set_header(self, header: Header):
         self.header = header
+        return self
+
+    def add_event(self, event: Event):
+        if "event_v3" not in self.message:
+            self.message["event_v3"] = []
+        self.message["event_v3"].append(event.get_events())
         return self
 
     def merge(self):

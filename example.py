@@ -2,6 +2,8 @@
 from datarangers.collector.event_collector import EventCollector
 import os
 
+from datarangers.collector.model.event import Event
+
 EventCollector.init(
     {
         "headers": {
@@ -22,7 +24,7 @@ app_id = os.getenv("APP_ID")
 
 
 def send_app():
-    device_id = 7542966151014286350
+    device_id = 1
     EventCollector.send_app_event('uuid', app_id, {}, 'app_event_ab_sdk', {}, ab_sdk_version="11")
     EventCollector.send_app_event('', app_id, {}, 'app_event_test1', {}, device_uniq_id=device_id)
     EventCollector.send_app_event('', app_id, {}, 'app_event_test2', {}, device_uniq_id=device_id,
@@ -57,7 +59,23 @@ def send_mp():
                                  ab_sdk_version=["1", "2"])
 
 
+def send_app2():
+    EventCollector.send_app_event('uuid2', app_id, {}, 'app_event_local_time_ms', {}, local_time_ms=1656556311000)
+
+
+def send_event():
+    from datarangers.collector.model.header import Header
+    header = Header()
+    event = Event()
+    event.set_event("event_aa")\
+        .set_local_time_ms(1656556311000)\
+        .set_ab_sdk_version("33")
+    EventCollector.send_event('app', 'uuid2', app_id, header, event)
+
+
 if __name__ == '__main__':
-    send_app()
+    # send_app()
     # send_web()
     # send_mp()
+    send_app2()
+    send_event()

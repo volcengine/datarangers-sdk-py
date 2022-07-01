@@ -9,6 +9,8 @@ Home page of The Apache Software Foundation
 import queue
 import logging
 from datarangers.collector.config.collector_config import dataRangersSdkConfig
+from datarangers.collector.model.event import Event
+from datarangers.collector.model.header import Header
 from datarangers.collector.model.items_method import ItemsMethod
 from datarangers.collector.model.message import Message
 from datarangers.collector.model.profile_method import ProfileMethod
@@ -19,68 +21,110 @@ class EventCollector:
 
     @staticmethod
     def send_app_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
-                       device_type=None, device_uniq_id=None, ab_sdk_version=None):
+                       device_type=None, device_uniq_id=None, ab_sdk_version=None, local_time_ms=None):
         r""" send app event
 
         :param user_unique_id: uuid
         :param app_id: app id
         :param custom
-        :param event_name,event_params,ab_sdk_version
+        :param event_name,event_params,ab_sdk_version,local_time_ms
             if isinstance(event_name, str):
                 isinstance(event_params,dict) -> event_params should be a dict
             else if isinstance(event_name, list):
                 isinstance(event_params,list) and len(event_params) == len(event_name)
                 which mean event_name[n]'s params is event_params[n],
-                ab_sdk_version[n]'s params is ab_sdk_version[n]
+                ab_sdk_version[n]'s params is ab_sdk_version[n],
+                local_time_ms[n]'s params is local_time_ms[n]
+
         :param device_type: ["android","ios"]
         :param device_uniq_id: device identification
         :param ab_sdk_version: ab_sdk_version
+        :param local_time_ms: event time of millisecond
         """
         EventCollector.__collector("app", user_unique_id, app_id, custom, event_name, event_params, device_type,
-                                   device_uniq_id, ab_sdk_version)
+                                   device_uniq_id, ab_sdk_version, local_time_ms)
 
     @staticmethod
     def send_mp_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
-                      device_uniq_id=None, ab_sdk_version=None):
+                      device_uniq_id=None, ab_sdk_version=None, local_time_ms=None):
         r""" send mp event
 
         :param user_unique_id: uuid
         :param app_id: app id
         :param custom
-        :param event_name,event_params,ab_sdk_version
+        :param event_name,event_params,ab_sdk_version,local_time_ms
             if isinstance(event_name, str):
                 isinstance(event_params,dict) -> event_params should be a dict
             else if isinstance(event_name, list):
                 isinstance(event_params,list) and len(event_params) == len(event_name)
                 which mean event_name[n]'s params is event_params[n],
-                ab_sdk_version[n]'s params is ab_sdk_version[n]
+                ab_sdk_version[n]'s params is ab_sdk_version[n],
+                local_time_ms[n]'s params is local_time_ms[n]
+
         :param device_uniq_id: device identification
         :param ab_sdk_version: ab_sdk_version
+        :param local_time_ms: event time of millisecond
         """
         EventCollector.__collector("mp", user_unique_id, app_id, custom, event_name, event_params,
-                                   device_uniq_id=device_uniq_id, ab_sdk_version=ab_sdk_version)
+                                   device_uniq_id=device_uniq_id, ab_sdk_version=ab_sdk_version,
+                                   local_time_ms=local_time_ms)
 
     @staticmethod
     def send_web_event(user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
-                      device_uniq_id=None, ab_sdk_version=None):
+                      device_uniq_id=None, ab_sdk_version=None, local_time_ms=None):
         r""" send web event
 
         :param user_unique_id: uuid
         :param app_id: app id
         :param custom
-        :param event_name,event_params, ab_sdk_version
+        :param event_name,event_params, ab_sdk_version,local_time_ms
             if isinstance(event_name, str):
                 isinstance(event_params,dict) -> event_params should be a dict
             else if isinstance(event_name, list):
                 isinstance(event_params,list) and len(event_params) == len(event_name)
                 which mean event_name[n]'s params is event_params[n],
                 ab_sdk_version[n]'s params is ab_sdk_version[n]
+                local_time_ms[n]'s params is local_time_ms[n]
 
         :param device_uniq_id: device identification
         :param ab_sdk_version: ab_sdk_version
+        :param local_time_ms: event time of millisecond
         """
         EventCollector.__collector("web", user_unique_id, app_id, custom, event_name, event_params,
-                                   device_uniq_id=device_uniq_id, ab_sdk_version=ab_sdk_version)
+                                   device_uniq_id=device_uniq_id, ab_sdk_version=ab_sdk_version,
+                                   local_time_ms=local_time_ms)
+
+    @staticmethod
+    def send_event(app_type: str, user_unique_id: str, app_id: int, header: Header, event: Event, device_uniq_id=None):
+        """
+        :param app_type: app type, only: app,web,mp
+        :param user_unique_id: uuid
+        :param app_id: app_id
+        :param header: header
+        :param event: event
+        :param device_uniq_id: device_id
+        """
+        if not EventCollector.__init_status:
+            raise RuntimeError("please init sdk config before use it")
+        if (not header) or (not event):
+            raise RuntimeError("header or event cannot be None")
+        message = Message()
+        message.set_header(header)
+        message.set_app_type(app_type)
+        message.set_app_id(app_id)
+        message.set_user_unique_id(user_unique_id)
+        message.add_event(event)
+        if device_uniq_id:
+            message.set_device_id(device_uniq_id)
+        if dataRangersSdkConfig.is_save():
+            dataRangersSdkConfig.sdk_logger.debug(message.get_json());
+        else:
+            try:
+                dataRangersSdkConfig.sdk_queue.put(message, block=True, timeout=0.01)
+            except queue.Full as e:
+                logging.error("Queue fulled!", e)
+                dataRangersSdkConfig.sdk_error_logger.debug(message.get_json())
+
 
     @staticmethod
     def profile_set(user_unique_id: str, app_id: int, event_params):
@@ -169,7 +213,7 @@ class EventCollector:
 
     @staticmethod
     def __collector(app_type: str, user_unique_id: str, app_id: int, custom: dict, event_name, event_params,
-                    device_type=None, device_uniq_id=None, ab_sdk_version=None):
+                    device_type=None, device_uniq_id=None, ab_sdk_version=None, local_time_ms=None):
         if not EventCollector.__init_status:
             raise RuntimeError("please init sdk config before use it")
         message = Message()
@@ -194,7 +238,8 @@ class EventCollector:
             elif isinstance(event_name, list):
                 event_params = {[] for i in range(len(list))}
         if isinstance(event_name, str) and isinstance(event_params, dict):
-            message.set_event(event_name=event_name, event_params=event_params, ab_sdk_version=ab_sdk_version)
+            message.set_event(event_name=event_name, event_params=event_params,
+                              ab_sdk_version=ab_sdk_version, local_time_ms=local_time_ms)
         elif isinstance(event_name, list) and isinstance(event_params, list):
             for i in range(min(len(event_name), len(event_params))):
                 name = event_name[i]
@@ -205,8 +250,10 @@ class EventCollector:
                 ab_sdk_version_current = None
                 if isinstance(ab_sdk_version, list):
                     ab_sdk_version_current = ab_sdk_version[i]
-
-                message.set_event(event_name_current, event_params[i], ab_sdk_version_current)
+                local_time_ms_current = None
+                if isinstance(local_time_ms, list):
+                    local_time_ms_current = local_time_ms[i]
+                message.set_event(event_name_current, event_params[i], ab_sdk_version_current, local_time_ms_current)
         else:
             logging.error("event_name or event_params are invalid! event_name:{};event_params:{}".format(event_name,
                                                                                                          event_params))
@@ -223,3 +270,4 @@ class EventCollector:
     def init(conf: dict):
         dataRangersSdkConfig.init(conf)
         EventCollector.__init_status = True
+
