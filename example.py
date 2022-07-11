@@ -16,7 +16,8 @@ EventCollector.init(
         "log_file_name": "datarangers",
         "log_file_path": "logs/datarangers/",
         "queue_length": 204800,
-        "thread_count": 4
+        "thread_count": 4,
+        "sync": True
     }
 )
 

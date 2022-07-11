@@ -8,7 +8,7 @@ Home page of The Apache Software Foundation
 """
 import queue
 import logging
-from datarangers.collector.config.collector_config import dataRangersSdkConfig
+from datarangers.collector.config.collector_config import dataRangersSdkConfig, DataRangersSdkConfig
 from datarangers.collector.model.event import Event
 from datarangers.collector.model.header import Header
 from datarangers.collector.model.items_method import ItemsMethod
@@ -116,14 +116,8 @@ class EventCollector:
         message.add_event(event)
         if device_uniq_id:
             message.set_device_id(device_uniq_id)
-        if dataRangersSdkConfig.is_save():
-            dataRangersSdkConfig.sdk_logger.debug(message.get_json());
-        else:
-            try:
-                dataRangersSdkConfig.sdk_queue.put(message, block=True, timeout=0.01)
-            except queue.Full as e:
-                logging.error("Queue fulled!", e)
-                dataRangersSdkConfig.sdk_error_logger.debug(message.get_json())
+
+        EventCollector.__send_event(message)
 
 
     @staticmethod
@@ -257,13 +251,23 @@ class EventCollector:
         else:
             logging.error("event_name or event_params are invalid! event_name:{};event_params:{}".format(event_name,
                                                                                                          event_params))
+        EventCollector.__send_event(message)
+
+    @staticmethod
+    def __send_event(message):
         if dataRangersSdkConfig.is_save():
             dataRangersSdkConfig.sdk_logger.debug(message.get_json())
+        elif dataRangersSdkConfig.is_sync():
+            session = DataRangersSdkConfig.init_session()
+            # 内部捕获了异常
+            DataRangersSdkConfig.http_send(message, session)
+            session.close()
         else:
             try:
                 dataRangersSdkConfig.sdk_queue.put(message, block=True, timeout=0.01)
             except queue.Full as e:
                 logging.error("Queue fulled!")
+                logging.exception(e)
                 dataRangersSdkConfig.sdk_error_logger.debug(message.get_json())
 
     @staticmethod

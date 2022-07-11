@@ -35,9 +35,16 @@ class DataRangersSdkConfig:
         self.__save = True
         self.__send = False
         self.__http_timeout = 3
+        self.__sync = False
         self.sdk_logger = None
         self.sdk_error_logger = None
         self.ready = False
+
+    def is_sync(self):
+        return self.__sync;
+
+    def set_sync(self, sync: bool = False):
+        self.__sync = True
 
     def is_ready(self):
         return self.ready
@@ -131,12 +138,14 @@ class DataRangersSdkConfig:
             self.set_log_file_path(config.get("log_file_path", "logs/datarangers/"))
             self.set_queue_length(config.get("queue_length", 20480))
             self.set_send_thread_count(config.get("thread_count", 4))
+            if config.get("sync"):
+                self.set_sync(config.get("sync"))
 
             self.sdk_logger = RangersWriter(self.get_log_file_path(), self.get_log_file_name(),
                                             self.get_log_max_bytes())
             self.sdk_error_logger = RangersWriter(self.get_log_file_path(), "{}-error".format(self.get_log_file_name()),
                                                   self.get_log_max_bytes())
-            if self.is_send():
+            if self.is_send() and (not self.is_sync()):
                 self.sdk_queue = queue.Queue(maxsize=self.get_queue_length())
                 self.__sdk_executor = ThreadPoolExecutor(max_workers=self.get_send_thread_count())
                 for i in range(self.get_send_thread_count()):
@@ -147,9 +156,7 @@ class DataRangersSdkConfig:
 
     @staticmethod
     def consumer_thread(name, t_queue: queue.Queue):
-        session = requests.Session()
-        session.mount('http://', HTTPAdapter(pool_connections=100, pool_maxsize=100, max_retries=3))
-        session.mount('https://', HTTPAdapter(pool_connections=100, pool_maxsize=100, max_retries=3))
+        session = DataRangersSdkConfig.init_session()
         logging.debug("成功启动消费者-{}".format(name))
         while True:
             try:
@@ -157,18 +164,7 @@ class DataRangersSdkConfig:
                 if msg and dataRangersSdkConfig.is_send():
                     logging.debug(msg.get_json())
                     if type(msg) == Message:
-                        try:
-                            res = session.post(dataRangersSdkConfig.get_applog(),
-                                               headers=dataRangersSdkConfig.get_http_header(),
-                                               data=msg.get_json(), timeout=dataRangersSdkConfig.get_http_time_out())
-                            result = json.loads(res.content)
-                            logging.info(result)
-                            if "message" not in result or result["message"] != "success":
-                                logging.error("Send Error")
-                                dataRangersSdkConfig.sdk_error_logger.debug(msg.get_json())
-                        except Exception as e:
-                            logging.error(e)
-                            dataRangersSdkConfig.sdk_error_logger.debug(msg.get_json())
+                        DataRangersSdkConfig.http_send(msg, session)
                     else:
                         continue
                 else:
@@ -177,6 +173,30 @@ class DataRangersSdkConfig:
             except:
                 break
         logging.info("消费者-{}退出".format(name))
+
+    @staticmethod
+    def http_send(msg, session):
+        try:
+            res = session.post(dataRangersSdkConfig.get_applog(),
+                               headers=dataRangersSdkConfig.get_http_header(),
+                               data=msg.get_json(), timeout=dataRangersSdkConfig.get_http_time_out())
+            result = json.loads(res.content)
+            logging.info(result)
+            if "message" not in result or result["message"] != "success":
+                logging.error('Send Error: {}, body: \r\n{}'.format(result, msg.get_json()))
+                dataRangersSdkConfig.sdk_error_logger.debug(msg.get_json())
+            else:
+                logging.info("Send Success")
+        except Exception as e:
+            logging.exception(e)
+            dataRangersSdkConfig.sdk_error_logger.debug(msg.get_json())
+
+    @staticmethod
+    def init_session():
+        session = requests.Session()
+        session.mount('http://', HTTPAdapter(pool_connections=100, pool_maxsize=100, max_retries=3))
+        session.mount('https://', HTTPAdapter(pool_connections=100, pool_maxsize=100, max_retries=3))
+        return session
 
 
 dataRangersSdkConfig = DataRangersSdkConfig()
