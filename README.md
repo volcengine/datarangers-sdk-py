@@ -23,7 +23,8 @@ datarangers-sdk-php是 [DataRangers](https://datarangers.com.cn/) 的用户行�
                 "log_file_name": "datarangers",
                 "log_file_path": "logs/datarangers/",
                 "queue_length": 204800,
-                "thread_count": 4
+                "thread_count": 4,
+                "sync": False
             }
         )
     ```
@@ -41,6 +42,7 @@ datarangers-sdk-php是 [DataRangers](https://datarangers.com.cn/) 的用户行�
         * log_file_name： 保存的日志的文件名
         * log_file_path： 保存的日志的路径
         * queue_length： 队列的长度，需要进行合理配置，保证生产的速度不会将队列填满
+    * sync, 是否同步上报，默认以异步的方式，支持的性能会更好；设置为True，则为同步上报
     
 3. 上报事件接口
     ```python
