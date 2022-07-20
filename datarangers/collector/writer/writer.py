@@ -60,6 +60,15 @@ class RangersWriter:
     def debug(self, message):
         self.info(message)
 
+    def close(self):
+        self.__writer.close()
+
+    def flush(self):
+        self.__writer.flush()
+
+    def get_writer(self):
+        return self.__writer
+
     def __del__(self):
         self.__writer.close()
 
