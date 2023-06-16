@@ -6,7 +6,7 @@ compileall.compile_dir("datarangers")
 
 setup(
     name='datarangers-sdk-python',
-    version='1.1.1-snapshot',
+    version='1.1.1',
     packages=['datarangers',
               'datarangers.collector',
               'datarangers.collector.config',
