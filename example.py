@@ -1,4 +1,6 @@
 # encoding: utf-8
+import time
+
 from datarangers.collector.event_collector import EventCollector
 import os
 
@@ -6,9 +8,6 @@ from datarangers.collector.model.event import Event
 
 EventCollector.init(
     {
-        "headers": {
-            "Host": os.getenv("HOST")
-        },
         "http_timeout": 0.2,
         "domain": os.getenv("DOMAIN"),
         "save": False,
@@ -73,10 +72,11 @@ def send_event():
         .set_ab_sdk_version("33")
     EventCollector.send_event('app', 'uuid2', app_id, header, event)
 
-
 if __name__ == '__main__':
-    # send_app()
-    # send_web()
-    # send_mp()
+    send_app()
+    send_web()
+    send_mp()
     send_app2()
     send_event()
+    time.sleep(3)
+    print("end")
